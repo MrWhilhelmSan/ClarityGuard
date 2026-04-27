@@ -1,0 +1,27 @@
+# ClarityGuard — Dependencies
+# Install with: pip install -r requirements.txt
+
+# Core ML
+torch>=2.4.0
+transformers>=4.47.0
+accelerate
+bitsandbytes
+unsloth
+
+# Training
+trl
+datasets
+peft
+
+# Inference (llama.cpp)
+# Build from source: https://github.com/ggerganov/llama.cpp
+
+# Dify batch processing
+# No external dependencies required (uses stdlib: json, urllib, xml, zipfile)
+
+# Embeddings (RAG)
+# Jina Embeddings — served via Dify self-hosted
+# https://jina.ai/embeddings/
+
+# YAML config
+pyyaml

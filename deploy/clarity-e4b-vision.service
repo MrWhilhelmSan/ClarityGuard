@@ -1,0 +1,21 @@
+[Unit]
+Description=Clarity Gemma4 E4B Vision Server (llama.cpp)
+After=network.target
+
+[Service]
+Type=simple
+User=charlie
+WorkingDirectory=/home/charlie/Documents/llama.cpp/gguf-output/clarity-e4b-from-unsloth-clean
+ExecStart=/home/charlie/Documents/llama.cpp/build/bin/llama-server \
+  -m /home/charlie/Documents/llama.cpp/gguf-output/clarity-e4b-from-unsloth-clean/Checkpoint-375-Ollama-Clean-7.5B-Q4_K_M.gguf \
+  --mmproj /home/charlie/Documents/llama.cpp/gguf-output/clarity-e4b-from-unsloth-clean/mmproj-Checkpoint-375-Ollama-Clean-BF16.gguf \
+  --host 0.0.0.0 \
+  --port 8081 \
+  -c 16384 \
+  -ngl 99 \
+  --jinja
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

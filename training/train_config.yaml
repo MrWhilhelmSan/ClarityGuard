@@ -1,0 +1,53 @@
+# Configuración versionada para fine-tuning ClarityGuard (Unsloth + TRL SFT).
+# Perfiles: pilot_1k (~1000 ejemplos), scale_10k (dataset grande; ruta opcional).
+
+defaults:
+  # QLoRA 4-bit + calidad en ~16 GB VRAM (RTX 5070 Ti)
+  load_in_4bit: true
+  max_seq_length: 4096
+  lora_r: 48
+  lora_alpha: 96
+  lora_dropout: 0.0
+  per_device_train_batch_size: 2
+  gradient_accumulation_steps: 8
+  learning_rate: 1.5e-4
+  warmup_ratio: 0.03
+  logging_steps: 10
+  save_steps: 200
+  seed: 3407
+  bf16: true
+  gradient_checkpointing: true
+  # Mensaje sistema: null = sin system (solo user+assistant como en el JSONL).
+  # Si lo defines, se antepone al contenido del primer turno user (compatible Gemma).
+  system_prompt: null
+  # Quitar la línea [dataset_id=...] del texto user para inferencia limpia.
+  strip_dataset_id_line: true
+  # Gemma usa rol "model" en plantilla; el JSONL usa "assistant" → conversión automática en prepare.
+  val_ratio: 0.02
+  merge_and_save_16bit: false
+
+profiles:
+  pilot_1k:
+    model_name: unsloth/gemma-2-2b-it
+    data_file: ../manipulational_conversation_responses_train_messages.jsonl
+    output_dir: ./outputs/clarityguard_pilot_1k
+    num_train_epochs: 2
+    max_steps: -1
+
+  scale_10k:
+    model_name: unsloth/gemma-2-2b-it
+    # Coloca aquí tu JSONL de ~10k (mismo esquema que train_messages).
+    data_file: ../manipulational_conversation_responses_train_messages_10k.jsonl
+    output_dir: ./outputs/clarityguard_scale_10k
+    num_train_epochs: 1
+    max_steps: -1
+    save_steps: 500
+    # Con más datos, batch efectivo similar; opcional bajar LR:
+    # learning_rate: 1.0e-4
+
+  pilot_1k_normalized:
+    model_name: unsloth/gemma-2-2b-it
+    data_file: ../manipulational_conversation_responses_train_messages_normalized.jsonl
+    output_dir: ./outputs/clarityguard_pilot_1k_normalized
+    num_train_epochs: 2
+    max_steps: -1

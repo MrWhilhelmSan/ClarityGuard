@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  clarity-e4b-vision:
+    build: .
+    ports:
+      - "8081:8081"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    restart: unless-stopped

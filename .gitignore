@@ -1,0 +1,36 @@
+# ClarityGuard .gitignore
+
+# Large data files
+*.jsonl
+*.gguf
+*.safetensors
+*.bin
+*.pt
+
+# Training outputs
+outputs/
+checkpoint-*/
+runs/
+
+# Unsloth cache
+unsloth_compiled_cache/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment
+.env
+*.venv
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Model weights (too large for git)
+# Download from HuggingFace or Kaggle

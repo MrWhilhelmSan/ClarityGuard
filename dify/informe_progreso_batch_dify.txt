@@ -1,0 +1,63 @@
+Informe de progreso — batch Dify (chat1 / chat2000 / chat3000)
+Fecha de referencia: 2026-04-09
+
+1) Archivos de estado (reanudación)
+   Los tres scripts delegan en dify_batch_chat.py, que guarda en cada JSON de rangos
+   el campo next_row_1based: es la siguiente fila 1-based del JSONL que se enviará
+   a Dify al volver a ejecutar el mismo script. No es necesario cambiar --from-row
+   ni --to-row en los wrappers.
+
+   - dify_batch_chat1.py
+     Rango declarado: filas 1–1000.
+     Estado: dify_batch_ranges1.json → row_ranges["1-1000"].next_row_1based = 889
+     Bloques "Pregunta" en manipulational_conversation_responses1.txt: 889
+     Nota: la fila 889 terminó con [ERROR API] (SSE / servidor). El estado quedó en 889
+     para reintentar esa misma fila en la próxima ejecución.
+
+   - dify_batch_chat2000.py
+     Rango declarado: filas 1001–1999.
+     Estado: dify_batch_ranges2000.json → next_row_1based = 1841
+     Bloques en manipulational_conversation_responses2000.txt: 841 (última Pregunta 1841)
+     Pendiente en este bloque: filas 1842–1999.
+
+   - dify_batch_chat3000.py
+     Rango declarado: filas 2001–2999.
+     Estado: dify_batch_ranges3000.json → next_row_1based = 2107
+     Bloques en manipulational_conversation_responses3000.txt: 107 (última Pregunta 2107)
+     Pendiente en este bloque: filas 2108–2999.
+
+2) Huecos entre rangos de los tres scripts
+   - Filas 1001–1999 y 2001–2999 no las cubre chat1 (solo hasta 1000).
+   - Entre chat1 (hasta 1000) y chat2000: si chat1 no llega a 1000, faltarían 890–1000;
+     en el estado actual chat1 va por 889, falta cerrar 889 (reintento) y luego 890–1000.
+   - chat2000 no cubre 1842–2000 hasta que termine su rango.
+   - chat3000 no cubre 2108–2999 hasta que termine su rango.
+
+3) Dataset de entrenamiento (solo los tres .txt de batch, sin otros orígenes)
+   Fuente de preguntas/metadata: manipulational_conversation.jsonl.
+   Respuestas únicamente desde:
+     manipulational_conversation_responses1.txt (filas 1–888 válidas),
+     manipulational_conversation_responses2000.txt (filas 1001–1999 válidas),
+     manipulational_conversation_responses3000.txt (filas 2001–2999 válidas).
+   No se mezcla con manipulational_conversation_responses.txt ni train_ready antiguo.
+   Respuestas [ERROR API] o vacías se excluyen.
+
+   Script de fusión: build_training_merge_dify_outputs.py
+   Ejecutar tras nuevas corridas: python3 build_training_merge_dify_outputs.py
+
+   Salidas:
+   - manipulational_conversation_with_model_responses_train_ready.jsonl
+   - manipulational_conversation_with_model_responses_train_ready_unsloth_format.jsonl
+     (todos los campos del JSONL original + model_* + id/instruction/output/text;
+     el diálogo A/B original queda en dataset_messages; messages = chat user/assistant)
+   - nuevo_training_gemma4_2b.jsonl (copia del formato Unsloth / turnos Gemma)
+
+   Conteo típico con los lotes actuales: 888 + 840 + 106 = 1834 ejemplos.
+
+4) Cómo continuar el batch
+   Ejecutar de nuevo el script del bloque correspondiente (misma carpeta, mismo entorno):
+     python3 dify_batch_chat1.py
+     python3 dify_batch_chat2000.py
+     python3 dify_batch_chat3000.py
+   Para forzar repetir un rango ya marcado completo: usar --redo en dify_batch_chat.py
+   vía los mismos argumentos que los wrappers (no aplicado por defecto).
