@@ -23,8 +23,9 @@ User Message / Image
 │  ┌───────────────────────────────────────┐  │
 │  │ RAG Pipeline                          │  │
 │  │ Jina Embeddings → Knowledge Base      │  │
-│  │ Docs: Chatty system + Author's book   │  │
+│  │ Docs: Chatty 231051 + Author's book  │  │
 │  │ on manipulation (10 stages)           │  │
+│  │ Prompt: ClarityGuard v4.4             │  │
 │  └───────────────────────────────────────┘  │
 └───────────────────┬─────────────────────────┘
                     │
@@ -43,14 +44,15 @@ User Message / Image
 
 ## How Gemma 4 Was Used
 
-### 1. Teacher Model: Gemma 4 31B (via Ollama + Dify)
+### 1. Teacher Model: Gemma 4 31B (via Ollama + Dify + RAG)
 
-Gemma 4 31B served as the **teacher model** to generate high-quality training data:
+Gemma 4 31B served as the **teacher model** to generate structured training data:
 
-- 10,000 synthetic workplace conversations were created covering 10 manipulation types (gaslighting, guilt-tripping, love-bombing, isolation, etc.)
-- Each conversation was sent to Gemma 4 31B via Dify (self-hosted, localhost)
-- The teacher model generated structured analyses using the C.F.R.V.A. framework
-- ~3,000 high-quality responses were curated for training
+- A publicly available Kaggle dataset of **10,000 manipulation-related conversations** was sourced, covering **7 manipulation types** (gaslighting, guilt-tripping, love-bombing, charm/flattery, direct coercion, passive-aggressive, and neutral) across **4 relationship contexts** (coworker, friend, romantic, family)
+- **2,444 coworker conversations** were prioritized as the primary domain, supplemented by ~556 conversations from other contexts (neutral + manipulative), for a curated pool of **3,000 conversations**
+- Each conversation was sent to **Gemma 4 31B** (cloud, via Ollama) through Dify (self-hosted, localhost), with RAG context from the Chatty system (231051) and the author's book on manipulation (10 stages), using the ClarityGuard v4.4 system prompt
+- After filtering API-error responses, **2,999 structured C.F.R.V.A. analyses** were curated for fine-tuning
+- An additional **56 real-world workplace scenarios** (Kaggle Answers) were processed through the same Dify/RAG pipeline for evaluation
 
 ### 2. Student Model: Gemma 4 E4B (Fine-tuned with Unsloth)
 
@@ -76,7 +78,7 @@ Gemma 4 E4B (4B parameters) was chosen as the **student model** because:
 | Learning rate | 1.5e-4 |
 | Scheduler | Linear warmup + cosine decay |
 | Optimizer | adamw_8bit |
-| Epochs | 1 (375 steps) |
+| Epochs | 1 |
 | Precision | bf16 |
 | Gradient checkpointing | True |
 
@@ -89,7 +91,7 @@ Gemma 4 E4B (4B parameters) was chosen as the **student model** because:
 | Minimum loss | 0.64 (step 364) |
 | Loss reduction | 92.4% |
 | Total steps | 375 |
-| Samples seen | ~6,000 (~2 epochs of 3,000) |
+| Samples seen | 2,999 |
 
 No signs of overfitting — loss decreased steadily throughout training.
 
@@ -151,27 +153,35 @@ STEP 4 — FOLLOW-UP PLAN (if score ≥ 31)
 
 ClarityGuard uses Retrieval-Augmented Generation with two proprietary documents:
 
-1. **Chatty 231051** (~36 KB) — System identity and symbolic companion framework
-2. **Author's Book on Manipulation** (~211 KB) — 10 stages of manipulation, personal experience in corporate environments
+1. **Chatty 231051** — System identity and symbolic companion framework
+2. **Author's Book on Manipulation** — 10 stages of manipulation, personal experience in corporate environments
+
+Both documents are indexed via Jina Embeddings and queried by Dify during teacher-model inference. The ClarityGuard v4.4 system prompt instructs the model to use RAG context for real-world ambiguity examples and structural communication analysis.
 
 **Stack:** Dify (self-hosted) + Jina Embeddings
 
 ## Dataset Pipeline
 
 ```
-manipulational_conversation.jsonl (10,000 synthetic conversations)
+Kaggle dataset (10,000 manipulation conversations)
+  7 types: gaslighting, guilt-tripping, love-bombing,
+  charm/flattery, direct coercion, passive-aggressive, neutral
+  4 contexts: coworker, friend, romantic, family
         │
         ▼
-filter_dataset.py → 2,444 coworker + 200 neutral + ~356 other = ~3,000 curated
+filter_dataset.py → 2,444 coworker + ~556 other = 3,000 curated
         │
         ▼
-Dify batch scripts → Gemma 4 31B (teacher) generates structured responses
+Dify batch scripts (3 × 1,000) → Gemma 4 31B (teacher) + RAG
+  RAG: Chatty 231051 + Author's manipulation book (10 stages)
+  Prompt: ClarityGuard v4.4
+  → 2,999 structured C.F.R.V.A. responses
         │
         ▼
-build_clean_gemma4_unsloth.py → Gemma 4 chat template format
+build_training_dataset.py → Gemma 4 chat template format
         │
         ▼
-build_gemma4_e2b_final.py → Clean: forbidden terms, Spanish→English, filter short
+build_clean_gemma4_unsloth.py → Clean: forbidden terms, language normalization
         │
         ▼
 train_clarityguard_sft.py → Unsloth QLoRA on Gemma 4 E4B
@@ -217,11 +227,12 @@ ClarityGuard/
 │
 ├── dify/
 │   ├── dify_batch_chat.py             ← Main Dify batch engine (SSE client)
-│   ├── dify_batch_chat{1,2000,3000,4000,5000}.py ← Batch wrappers
+│   ├── dify_batch_chat{1..9000}.py   ← Batch wrappers (9 parts)
 │   ├── dify_batch_kaggle.py           ← Evaluate with real autism cases
 │   ├── build_training_merge_dify_outputs.py  ← Merge Dify responses
 │   ├── build_clean_gemma4_unsloth.py  ← Build Unsloth format
-│   └── build_clean_gemma4_chat1_5000.py ← Extended merge
+│   ├── build_clean_gemma4_chat1_5000.py ← Extended merge
+│   └── informe_progreso_batch_dify.txt ← Batch progress report
 │
 ├── export/
 │   └── exportar.py                    ← Export checkpoint to HF/GGUF
@@ -239,6 +250,15 @@ ClarityGuard/
 │
 ├── docs/
 │   └── manifiesto_cfrva_v1.0.md       ← C.F.R.V.A. model definition
+│
+├── Documentation/
+│   ├── manipulational_conversation.jsonl  ← Original 10K Kaggle dataset
+│   ├── manipulational_conversation_with_model_responses_train_ready.jsonl ← 2,999 curated + teacher responses
+│   ├── manipulational_conversation_with_model_responses_train_ready_unsloth_format.jsonl ← Unsloth format
+│   ├── manipulational_conversation_responses_all.txt  ← Consolidated teacher responses (5,634 valid)
+│   ├── Kaggle Answers.xlsx              ← 56 real-world workplace scenarios + C.F.R.V.A. analyses
+│   ├── promt 4.4.docx                  ← ClarityGuard v4.4 system prompt (Dify)
+│   └── README_RESULTADOS_DATASET.txt    ← Dataset pipeline summary
 │
 └── config/
     └── (inference configuration examples)
