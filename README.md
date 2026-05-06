@@ -1,6 +1,6 @@
 # ClarityGuard — Gemma 4 E4B Fine-Tuning for Neurodivergent Communication Support
 
-[![License: CC BY 4.0](https://img.shields.io/badge/License-CC_BY_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
+[![License: CC BY 4.0](https://img.shields.io/badge/License-CC_BY_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/) [![HuggingFace](https://img.shields.io/badge/🤗_HuggingFace-Model-yellow)](https://huggingface.co/CharlieBonito/clarity-guard-gemma4-7b)
 
 **ClarityGuard** is a fine-tuned [Gemma 4 E4B (4B)](https://ai.google.dev/gemma) multimodal model that detects and analyzes ambiguous or problematic communication patterns in workplace conversations. It is designed to help neurodivergent individuals (especially autistic adults) identify manipulation, gaslighting, and unclear communication — giving them a structured framework to respond.
 
@@ -269,7 +269,10 @@ ClarityGuard/
 ### 1. Serve the Model (llama.cpp)
 
 ```bash
-# Download the GGUF files and run:
+# Download the model weights from HuggingFace:
+# https://huggingface.co/CharlieBonito/clarity-guard-gemma4-7b
+
+# Or clone the repo and deploy:
 git clone https://github.com/MrWhilhelmSan/ClarityGuard.git
 cd ClarityGuard/deploy
 chmod +x run-llama-server-q4.sh
@@ -309,3 +312,4 @@ python train_clarityguard_sft.py --config train_config.yaml --profile pilot_1k
 **Competition:** [Gemma 4 Good Hackathon](https://kaggle.com/competitions/gemma-4-good-hackathon) (2026)
 **Author:** Carlos Lengemann
 **GitHub:** https://github.com/MrWhilhelmSan/ClarityGuard
+**Model Weights:** https://huggingface.co/CharlieBonito/clarity-guard-gemma4-7b
