@@ -5,3 +5,10 @@ merge_answers.js
 *Zone.Identifier
 ~$*
 __pycache__/
+# Source files (only Kaggle final.xlsx is tracked)
+Kaggle 1.xlsx
+Kaggle 2.xlsx
+Kaggle 3.xlsx
+Kaggle Answers.xlsx
+dify_batch_chat.py
+new/
