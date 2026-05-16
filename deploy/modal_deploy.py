@@ -7,23 +7,24 @@ Deploy: modal deploy modal_deploy.py
 import modal
 
 # Crear app
-app = modal.App("clarity-e4b-vision")
+app = modal.App("clarityguard-v2")
 
 # Imagen con llama.cpp
 image = (
-    modal.Image.from_registry("nvidia/cuda:12.4.0-devel-ubuntu22.04")
-    .apt_install("git", "build-essential", "curl")
+    modal.Image.from_registry("nvidia/cuda:12.6.3-devel-ubuntu22.04")
+    .apt_install("git", "cmake", "build-essential", "curl")
     .run_commands(
         "cd /root && git clone https://github.com/ggml-org/llama.cpp.git",
-        "cd /root/llama.cpp && make LLAMA_CUDA=1",
+        "cd /root/llama.cpp && cmake -B build -DGGML_CUDA=ON -DCMAKE_BUILD_TYPE=Release",
+        "cd /root/llama.cpp && cmake --build build -j --target llama-server",
     )
 )
 
 # Volumen para el modelo
 volume = modal.Volume.from_name("clarity-models", create_if_missing=True)
 MODEL_PATH = "/models"
-MMPROJ_NAME = "mmproj-Checkpoint-375-Ollama-Clean-BF16.gguf"
-MODEL_NAME = "Checkpoint-375-Ollama-Clean-7.5B-Q4_K_M.gguf"
+MMPROJ_NAME = "mmproj-ClarityGuard-v2.gguf"
+MODEL_NAME = "ClarityGuard-v2.gguf"
 
 
 @app.cls(
@@ -39,13 +40,13 @@ class ClarityE4B:
         import subprocess
         self.server_process = subprocess.Popen(
             [
-                "/root/llama.cpp/llama-server",
+                "/root/llama.cpp/build/bin/llama-server",
                 "-m", f"{MODEL_PATH}/{MODEL_NAME}",
                 "--mmproj", f"{MODEL_PATH}/{MMPROJ_NAME}",
                 "--host", "0.0.0.0",
                 "--port", "8080",
-                "-c", "16384",
-                "-ngl", "99",
+                "-c", "12288",
+                "-ngl", "999",
                 "--jinja",
             ]
         )
@@ -76,7 +77,7 @@ class ClarityE4B:
 
     @modal.fastapi_endpoint(method="GET")
     def health(self):
-        return {"status": "ok", "model": "clarity-e4b-vision"}
+        return {"status": "ok", "model": "clarityguard-v2"}
 
 
 # Comando para subir modelos (ejecutar una vez)

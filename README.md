@@ -1,315 +1,260 @@
-# ClarityGuard — Gemma 4 E4B Fine-Tuning for Neurodivergent Communication Support
+# ClarityGuard - Gemma 4 E4B for Neuro-Inclusive Communication Clarity
 
-[![License: CC BY 4.0](https://img.shields.io/badge/License-CC_BY_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/) [![HuggingFace](https://img.shields.io/badge/🤗_HuggingFace-Model-yellow)](https://huggingface.co/CharlieBonito/clarity-guard-gemma4-7b)
+[![Hugging Face Model](https://img.shields.io/badge/HuggingFace-Model-yellow)](https://huggingface.co/CharlieBonito/clarity-guard-gemma4-7b)
+[![Live Demo](https://img.shields.io/badge/HuggingFace-Space-blue)](https://huggingface.co/spaces/CharlieBonito/ClarityGuardAgent)
+[![Framework License: CC BY 4.0](https://img.shields.io/badge/C.F.R.V.A.-CC_BY_4.0-lightgrey)](https://creativecommons.org/licenses/by/4.0/)
 
-**ClarityGuard** is a fine-tuned [Gemma 4 E4B (4B)](https://ai.google.dev/gemma) multimodal model that detects and analyzes ambiguous or problematic communication patterns in workplace conversations. It is designed to help neurodivergent individuals (especially autistic adults) identify manipulation, gaslighting, and unclear communication — giving them a structured framework to respond.
+ClarityGuard is a fine-tuned Gemma 4 E4B IT model for structural communication analysis. It helps neurodivergent users decode ambiguous workplace and personal messages by identifying what a message says, what it leaves undefined, and what clarification can be sent back.
 
-Built for the **Gemma 4 Good Hackathon** (Kaggle, 2026).
+The core principle is simple: when a message lacks a clear owner, action, deadline, or measurable criterion, confusion is a valid response to incomplete input, not a cognitive error.
 
-**Tracks entered:**
-- Main Track: Safety & Trust
-- Special Technology Track: Unsloth
+Built for the Gemma 4 Good Hackathon 2026.
 
----
+## Links
 
-## Architecture Overview
+| Resource | URL |
+|---|---|
+| Live demo | https://huggingface.co/spaces/CharlieBonito/ClarityGuardAgent |
+| Model weights | https://huggingface.co/CharlieBonito/clarity-guard-gemma4-7b |
+| Source repository | https://github.com/MrWhilhelmSan/ClarityGuard |
 
+## Active Model
+
+| Property | Value |
+|---|---|
+| Active version | ClarityGuard v2 |
+| Training checkpoint | 750 |
+| Base model | Unsloth Gemma 4 E4B IT BNB 4-bit |
+| Architecture | Gemma 4 |
+| Parameters | 7.52B |
+| Quantization | GGUF / Q4_K_M |
+| Main file | `ClarityGuard-v2.gguf` |
+| Multimodal projector | `mmproj-ClarityGuard-v2.gguf` |
+| Model context metadata | 131072 tokens |
+| HF Space deployed context | 12288 tokens |
+| Inference runtime | llama.cpp / llama-server |
+
+Deprecated checkpoint-375 artifacts are not the active deployment files. The final public deployment uses `ClarityGuard-v2.gguf` and `mmproj-ClarityGuard-v2.gguf`.
+
+## What ClarityGuard Does
+
+ClarityGuard analyzes communication structure rather than judging the user or inferring the sender's intent. It is designed for situations such as:
+
+- ambiguous work instructions
+- vague feedback like "be more proactive"
+- ghost ownership such as "we need to fix this"
+- undefined deadlines like "soon" or "ASAP"
+- social or workplace messages where the expected action is implied but not stated
+- image-supported or multimodal situations through the Gemma 4 vision projector
+
+The model returns concrete output: structural analysis, cognitive protection, a read-back clarification question, and a follow-up plan when ambiguity persists.
+
+## C.F.R.V.A. Framework
+
+C.F.R.V.A. is the analysis framework created by Carlos Lengemann (2026), published under CC BY 4.0.
+
+| Factor | Detects |
+|---|---|
+| Context | Undeclared assumptions or missing background |
+| Framing | Undefined terms or missing measurable criteria |
+| Responsibility | Unclear ownership, ghost "we", or missing actor |
+| Validation | Approval implicitly conditioned on not asking questions |
+| Ambiguity | Jargon, metaphor, indirect language, or unsupported instructions |
+
+Each dimension is scored from 0 to 10, for a maximum score of 50.
+
+| Score | Response mode |
+|---|---|
+| 0-10 | Clear message. Confirm briefly. |
+| 11-20 | General clarity issue. Name the ambiguity and suggest one confirmation question. |
+| 21-30 | Moderate ambiguity. Full analysis plus cognitive protection and clarification. |
+| 31-50 | Maximum alert. Full four-step analysis plus follow-up plan. |
+
+## Architecture
+
+```text
+User message / image
+        |
+        v
+HF Space Gradio interface
+        |
+        v
+RAG context from ClarityGuard knowledge files
+        |
+        v
+llama-server + ClarityGuard-v2.gguf
+        |
+        v
+C.F.R.V.A. structured analysis
 ```
-User Message / Image
-       │
-       ▼
-┌─────────────────────────────────────────────┐
-│           DIFY Self-Hosted (Orchestrator)    │
-│  ┌───────────────────────────────────────┐  │
-│  │ RAG Pipeline                          │  │
-│  │ Jina Embeddings → Knowledge Base      │  │
-│  │ Docs: Chatty 231051 + Author's book  │  │
-│  │ on manipulation (10 stages)           │  │
-│  │ Prompt: ClarityGuard v4.4             │  │
-│  └───────────────────────────────────────┘  │
-└───────────────────┬─────────────────────────┘
-                    │
-                    ▼
-┌─────────────────────────────────────────────┐
-│  ClarityGuard — Gemma 4 E4B (Fine-tuned)    │
-│  QLoRA 4-bit | Checkpoint-375              │
-│  C.F.R.V.A. Analysis Framework             │
-│  Response: 4-step structured analysis      │
-└───────────────────┬─────────────────────────┘
-                    │
-                    ▼
-        llama-server --mmproj (port 8081)
-        Vision-capable | 100% Local | ~5.3 GB VRAM
+
+Training data was generated with a teacher/student workflow:
+
+```text
+Kaggle manipulation-conversation dataset
+        |
+        v
+filter_dataset.py
+2,444 coworker examples + ~556 contrast examples
+        |
+        v
+Dify batch pipeline + Gemma 4 31B teacher + RAG
+        |
+        v
+2,999 valid C.F.R.V.A. analyses
+        |
+        v
+Unsloth Studio fine-tuning on Gemma 4 E4B IT
+        |
+        v
+ClarityGuard v2 checkpoint 750
+        |
+        v
+GGUF Q4_K_M export for llama.cpp
 ```
 
 ## How Gemma 4 Was Used
 
-### 1. Teacher Model: Gemma 4 31B (via Ollama + Dify + RAG)
+### Teacher model
 
-Gemma 4 31B served as the **teacher model** to generate structured training data:
+Gemma 4 31B was used through a Dify self-hosted pipeline to generate structured C.F.R.V.A. responses from a curated dataset. The teacher pipeline included RAG context from the Chatty 231051 framework and the author's communication-analysis material.
 
-- A publicly available Kaggle dataset of **10,000 manipulation-related conversations** was sourced, covering **7 manipulation types** (gaslighting, guilt-tripping, love-bombing, charm/flattery, direct coercion, passive-aggressive, and neutral) across **4 relationship contexts** (coworker, friend, romantic, family)
-- **2,444 coworker conversations** were prioritized as the primary domain, supplemented by ~556 conversations from other contexts (neutral + manipulative), for a curated pool of **3,000 conversations**
-- Each conversation was sent to **Gemma 4 31B** (cloud, via Ollama) through Dify (self-hosted, localhost), with RAG context from the Chatty system (231051) and the author's book on manipulation (10 stages), using the ClarityGuard v4.4 system prompt
-- After filtering API-error responses, **2,999 structured C.F.R.V.A. analyses** were curated for fine-tuning
-- An additional **56 real-world workplace scenarios** (Kaggle Answers) were processed through the same Dify/RAG pipeline for evaluation
+### Student model
 
-### 2. Student Model: Gemma 4 E4B (Fine-tuned with Unsloth)
+Gemma 4 E4B IT was fine-tuned with Unsloth Studio for the final ClarityGuard v2 checkpoint. The active checkpoint is `750`, exported to GGUF and deployed with llama.cpp for local-first, GPU-accelerated inference.
 
-Gemma 4 E4B (4B parameters) was chosen as the **student model** because:
+### Why E4B
 
-- **Multimodal**: native vision capabilities via `Gemma4ForConditionalGeneration`
-- **Edge-deployable**: runs on consumer GPUs (RTX 4060, ~5.3 GB VRAM)
-- **Local-first**: no cloud dependency, privacy-preserving
-- Initial attempt with Gemma 4 E2B (2B) was insufficient — the 4B model has the capacity to learn the structured 4-step analysis format
+- large enough to internalize the four-step C.F.R.V.A. response format
+- small enough to run on consumer and hosted GPUs
+- supports multimodal inference through `mmproj-ClarityGuard-v2.gguf`
+- deployable through llama.cpp without relying on a closed inference provider
 
-**Fine-tuning technique:** QLoRA 4-bit via [Unsloth](https://unsloth.ai/)
+## Training and Evaluation Artifacts
 
-| Hyperparameter | Value |
-|---|---|
-| LoRA r | 48 |
-| LoRA alpha | 96 |
-| LoRA dropout | 0.0 |
-| Load in 4-bit | True |
-| Max sequence length | 4096 |
-| Per device batch size | 2 |
-| Gradient accumulation | 8 |
-| Effective batch size | 16 |
-| Learning rate | 1.5e-4 |
-| Scheduler | Linear warmup + cosine decay |
-| Optimizer | adamw_8bit |
-| Epochs | 1 |
-| Precision | bf16 |
-| Gradient checkpointing | True |
+The repository includes the scripts and audit artifacts used to build and evaluate the system:
 
-### 3. Training Results
+- `data/filter_dataset.py` - selects the 3,000-example training pool
+- `dify/dify_batch_chat.py` - sends examples through Dify/Gemma teacher generation
+- `dify/build_training_merge_dify_outputs.py` - merges teacher outputs
+- `training/train_clarityguard_sft.py` - reproducible QLoRA SFT training script
+- `training/train_config.yaml` - versioned training configuration and legacy pilot profiles
+- `Documentation/manipulational_conversation_responses_all.txt` - consolidated valid teacher responses
+- `Documentation/Kaggle final.xlsx` - comparison/evaluation artifact
+- `Documentation/Kaggle Answers.xlsx` - 56 workplace scenario evaluations
+- `Documentation/README_RESULTADOS_DATASET.txt` - dataset result summary
 
-| Metric | Value |
-|---|---|
-| Initial loss | 9.49 |
-| Final loss | 0.72 |
-| Minimum loss | 0.64 (step 364) |
-| Loss reduction | 92.4% |
-| Total steps | 375 |
-| Samples seen | 2,999 |
+Some large source JSONL files are intentionally not committed to keep the repository lightweight. The published model weights and available evaluation artifacts are hosted separately on Hugging Face and in `Documentation/`.
 
-No signs of overfitting — loss decreased steadily throughout training.
+## Deployment
 
-### 4. Export & Deployment
-
-The fine-tuned model was exported to GGUF format (Q4_K_M quantization) and deployed with **llama.cpp**:
+Download the model files from Hugging Face:
 
 ```bash
-./llama-server \
-  -m Checkpoint-375-Ollama-Clean-7.5B-Q4_K_M.gguf \
-  --mmproj mmproj-Checkpoint-375-Ollama-Clean-BF16.gguf \
-  --host 0.0.0.0 --port 8081 \
-  -c 16384 -ngl 99 --jinja
+huggingface-cli download CharlieBonito/clarity-guard-gemma4-7b \
+  ClarityGuard-v2.gguf \
+  mmproj-ClarityGuard-v2.gguf \
+  --local-dir deploy
 ```
 
-**Important:** The model works with full vision capabilities in llama.cpp. Exporting to Ollama **loses vision support**.
-
-## The C.F.R.V.A. Framework
-
-The C.F.R.V.A. model is the analytical engine behind ClarityGuard. It was created by Carlos Lengemann (2026) and is published under CC BY 4.0.
-
-| Dimension | Meaning | Score 0-10 |
-|---|---|---|
-| **C**ontexto no declarado | Hidden assumptions, unstated background | 0-10 |
-| **F**ocalización difusa | No measurable criteria for success | 0-10 |
-| **R**edirección encubierta | Topic shift without signaling | 0-10 |
-| **V**alidación condicionada | Approval depends on not asking questions | 0-10 |
-| **A**mbigüedad lingüística | Jargon, metaphors, vague language | 0-10 |
-
-**Total:** /50. Higher scores = more ambiguity.
-
-**Response modes:**
-- **0-10:** Clear. Confirm briefly.
-- **11-20:** Minor ambiguity. Suggest one question.
-- **21-30:** Moderate. Full analysis + clarification.
-- **31-50:** Maximum alert. 4-step response with cognitive protection.
-
-## Response Format
-
-Every ClarityGuard analysis follows 4 structured steps:
-
-```
-STEP 1 — ANALYSIS
-🔍 [ClarityGuard] C.F.R.V.A. score: XX/50 → [level]
-[Structural analysis of the message]
-
-STEP 2 — COGNITIVE PROTECTION (if score ≥ 21)
-🔒 Your confusion is not a failure. It is the correct response
-   to an incomplete message.
-
-STEP 3 — CONCRETE ACTION (Read-Back)
-✍️ [Specific clarification question the user can send]
-
-STEP 4 — FOLLOW-UP PLAN (if score ≥ 31)
-⏰ [Strategy if clarification is still abstract]
-```
-
-## RAG System
-
-ClarityGuard uses Retrieval-Augmented Generation with two proprietary documents:
-
-1. **Chatty 231051** — System identity and symbolic companion framework
-2. **Author's Book on Manipulation** — 10 stages of manipulation, personal experience in corporate environments
-
-Both documents are indexed via Jina Embeddings and queried by Dify during teacher-model inference. The ClarityGuard v4.4 system prompt instructs the model to use RAG context for real-world ambiguity examples and structural communication analysis.
-
-**Stack:** Dify (self-hosted) + Jina Embeddings
-
-## Dataset Pipeline
-
-```
-Kaggle dataset (10,000 manipulation conversations)
-  7 types: gaslighting, guilt-tripping, love-bombing,
-  charm/flattery, direct coercion, passive-aggressive, neutral
-  4 contexts: coworker, friend, romantic, family
-        │
-        ▼
-filter_dataset.py → 2,444 coworker + ~556 other = 3,000 curated
-        │
-        ▼
-Dify batch scripts (3 × 1,000) → Gemma 4 31B (teacher) + RAG
-  RAG: Chatty 231051 + Author's manipulation book (10 stages)
-  Prompt: ClarityGuard v4.4
-  → 2,999 structured C.F.R.V.A. responses
-        │
-        ▼
-build_training_dataset.py → Gemma 4 chat template format
-        │
-        ▼
-build_clean_gemma4_unsloth.py → Clean: forbidden terms, language normalization
-        │
-        ▼
-train_clarityguard_sft.py → Unsloth QLoRA on Gemma 4 E4B
-```
-
-## Hardware Requirements
-
-### Training (Unsloth + QLoRA)
-| Component | Spec |
-|---|---|
-| CPU | Intel Core i5 13600KF |
-| RAM | 32 GB DDR5 5600 MHz |
-| GPU | RTX 5070 Ti (16 GB VRAM) |
-| Storage | NVMe PCIe 4.0 |
-
-### Inference (llama.cpp + Vision)
-| Component | Spec |
-|---|---|
-| CPU | Intel Core i5 11400 |
-| RAM | 32 GB DDR4 3200 MHz |
-| GPU | RTX 4060 |
-| VRAM usage | ~5.3 GB (with vision) |
-| Storage | NVMe 500 GB |
-
-## Repository Structure
-
-```
-ClarityGuard/
-├── README.md                          ← This file
-├── LICENSE                            ← CC BY 4.0
-├── requirements.txt
-│
-├── training/
-│   ├── train_clarityguard_sft.py      ← Main Unsloth training script
-│   ├── train_config.yaml              ← Training hyperparameters
-│   ├── prepare_dataset.py             ← Dataset preparation
-│   └── normalize_assistant_language.py← Language normalization
-│
-├── data/
-│   ├── build_gemma4_e2b_final.py      ← Clean + forbidden terms replacement
-│   ├── build_gemma4_sft_internalize.py← Internalize think blocks
-│   └── filter_dataset.py              ← Filter 10K → 3K curated
-│
-├── dify/
-│   ├── dify_batch_chat.py             ← Main Dify batch engine (SSE client)
-│   ├── dify_batch_chat{1..9000}.py   ← Batch wrappers (9 parts)
-│   ├── dify_batch_kaggle.py           ← Evaluate with real autism cases
-│   ├── build_training_merge_dify_outputs.py  ← Merge Dify responses
-│   ├── build_clean_gemma4_unsloth.py  ← Build Unsloth format
-│   ├── build_clean_gemma4_chat1_5000.py ← Extended merge
-│   └── informe_progreso_batch_dify.txt ← Batch progress report
-│
-├── export/
-│   └── exportar.py                    ← Export checkpoint to HF/GGUF
-│
-├── deploy/
-│   ├── run-llama-server-q4.sh         ← llama-server launcher (Q4)
-│   ├── run-llama-server.sh            ← llama-server launcher (BF16)
-│   ├── clarity-e4b-vision.service     ← systemd service (auto-start)
-│   ├── Dockerfile                     ← Container deployment
-│   ├── docker-compose.yml             ← Docker compose config
-│   └── modal_deploy.py               ← Cloud deployment script
-│
-├── prompts/
-│   └── clarityguard_prompt_v4.4.txt   ← Full system prompt
-│
-├── docs/
-│   └── manifiesto_cfrva_v1.0.md       ← C.F.R.V.A. model definition
-│
-├── Documentation/
-│   ├── manipulational_conversation.jsonl  ← Original 10K Kaggle dataset
-│   ├── manipulational_conversation_with_model_responses_train_ready.jsonl ← 2,999 curated + teacher responses
-│   ├── manipulational_conversation_with_model_responses_train_ready_unsloth_format.jsonl ← Unsloth format
-│   ├── manipulational_conversation_responses_all.txt  ← Consolidated teacher responses (5,634 valid)
-│   ├── Kaggle Answers.xlsx              ← 56 real-world workplace scenarios + C.F.R.V.A. analyses
-│   ├── promt 4.4.docx                  ← ClarityGuard v4.4 system prompt (Dify)
-│   └── README_RESULTADOS_DATASET.txt    ← Dataset pipeline summary
-│
-└── config/
-    └── (inference configuration examples)
-```
-
-## Quick Start
-
-### 1. Serve the Model (llama.cpp)
+Then run llama.cpp:
 
 ```bash
-# Download the model weights from HuggingFace:
-# https://huggingface.co/CharlieBonito/clarity-guard-gemma4-7b
-
-# Or clone the repo and deploy:
-git clone https://github.com/MrWhilhelmSan/ClarityGuard.git
-cd ClarityGuard/deploy
+cd deploy
 chmod +x run-llama-server-q4.sh
 ./run-llama-server-q4.sh
-# Server starts at http://localhost:8081
 ```
 
-### 2. Test the API
+Default runtime:
+
+```text
+model: ClarityGuard-v2.gguf
+mmproj: mmproj-ClarityGuard-v2.gguf
+host: 0.0.0.0
+port: 8081
+context: 12288
+gpu layers: 999
+```
+
+Test the server:
 
 ```bash
 curl http://localhost:8081/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "clarityguard",
     "messages": [
-      {"role": "user", "content": "They said: \"We need to fix this.\" What does that mean?"}
-    ]
+      {
+        "role": "user",
+        "content": "They said: \"We need to fix this soon.\" What does that mean?"
+      }
+    ],
+    "max_tokens": 512,
+    "temperature": 0.7
   }'
 ```
 
-### 3. Fine-tune Your Own (Unsloth)
+## Repository Structure
 
-```bash
-pip install unsloth
-cd training
-python train_clarityguard_sft.py --config train_config.yaml --profile pilot_1k
+```text
+ClarityGuard/
+├── README.md
+├── LICENSE
+├── requirements.txt
+├── Kagglecompetition.txt
+├── data/
+│   ├── filter_dataset.py
+│   ├── build_gemma4_e2b_final.py
+│   └── build_gemma4_sft_internalize.py
+├── dify/
+│   ├── dify_batch_chat.py
+│   ├── dify_batch_kaggle.py
+│   └── build_training_merge_dify_outputs.py
+├── training/
+│   ├── train_clarityguard_sft.py
+│   ├── train_config.yaml
+│   ├── prepare_dataset.py
+│   └── normalize_assistant_language.py
+├── export/
+│   └── exportar.py
+├── deploy/
+│   ├── run-llama-server-q4.sh
+│   ├── run-llama-server.sh
+│   ├── Dockerfile
+│   ├── docker-compose.yml
+│   ├── modal_deploy.py
+│   └── clarity-e4b-vision.service
+├── prompts/
+│   ├── clarityguard_prompt_v4.4.txt
+│   └── clarityguard_prompt_v4.7.txt
+├── docs/
+│   └── manifiesto_cfrva_v1.0.md
+└── Documentation/
+    ├── README_RESULTADOS_DATASET.txt
+    ├── manipulational_conversation_responses_all.txt
+    ├── Kaggle final.xlsx
+    ├── Kaggle Answers.xlsx
+    └── respuestas/
 ```
+
+## Hackathon Tracks
+
+ClarityGuard is positioned for:
+
+- Digital Equity & Inclusivity
+- Safety & Trust
+- Unsloth Special Track
+- llama.cpp Special Track
 
 ## License
 
-- **Code:** Apache 2.0
-- **C.F.R.V.A. Model Definition:** CC BY 4.0 (attribution: Carlos Lengemann, 2026)
-- **RAG Documents (Chatty + Book):** All rights reserved by Carlos Lengemann
+- Code: Apache 2.0
+- C.F.R.V.A. framework: CC BY 4.0, attribution to Carlos Lengemann (2026)
+- Proprietary RAG/source writing: all rights reserved by Carlos Lengemann unless otherwise stated
 
----
+## Author
 
-**Competition:** [Gemma 4 Good Hackathon](https://kaggle.com/competitions/gemma-4-good-hackathon) (2026)
-**Author:** Carlos Lengemann
-**GitHub:** https://github.com/MrWhilhelmSan/ClarityGuard
-**Model Weights:** https://huggingface.co/CharlieBonito/clarity-guard-gemma4-7b
+Carlos Lengemann
+
+Model weights: https://huggingface.co/CharlieBonito/clarity-guard-gemma4-7b
+
+Live demo: https://huggingface.co/spaces/CharlieBonito/ClarityGuardAgent

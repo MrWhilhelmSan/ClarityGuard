@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  clarity-e4b-vision:
+  clarityguard-v2:
     build: .
     ports:
       - "8081:8081"

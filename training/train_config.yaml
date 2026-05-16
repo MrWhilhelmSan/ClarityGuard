@@ -1,5 +1,7 @@
 # Configuración versionada para fine-tuning ClarityGuard (Unsloth + TRL SFT).
-# Perfiles: pilot_1k (~1000 ejemplos), scale_10k (dataset grande; ruta opcional).
+# Nota: estos perfiles documentan el pipeline reproducible usado durante iteraciones
+# piloto. El modelo público final, ClarityGuard v2, fue entrenado/exportado con
+# Unsloth Studio sobre Gemma 4 E4B IT y publicado como checkpoint 750 en GGUF.
 
 defaults:
   # QLoRA 4-bit + calidad en ~16 GB VRAM (RTX 5070 Ti)
