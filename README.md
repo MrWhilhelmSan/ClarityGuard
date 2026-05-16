@@ -53,6 +53,8 @@ The model returns concrete output: structural analysis, cognitive protection, a 
 
 C.F.R.V.A. is the analysis framework created by Carlos Lengemann (2026), published under CC BY 4.0.
 
+Published: [doi.org/10.5281/zenodo.19636473](https://doi.org/10.5281/zenodo.19636473)
+
 | Factor | Detects |
 |---|---|
 | Context | Undeclared assumptions or missing background |
@@ -248,7 +250,7 @@ ClarityGuard is positioned for:
 ## License
 
 - Code: Apache 2.0
-- C.F.R.V.A. framework: CC BY 4.0, attribution to Carlos Lengemann (2026)
+- C.F.R.V.A. framework: CC BY 4.0, attribution to Carlos Lengemann (2026), DOI: https://doi.org/10.5281/zenodo.19636473
 - Proprietary RAG/source writing: all rights reserved by Carlos Lengemann unless otherwise stated
 
 ## Author
