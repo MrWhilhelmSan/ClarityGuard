@@ -98,7 +98,7 @@ filter_dataset.py
 2,444 coworker examples + ~556 contrast examples
         |
         v
-Dify batch pipeline + Gemma 4 31B teacher + RAG
+Dify batch pipeline + gemma4:31b-cloud (Ollama) teacher + RAG
         |
         v
 2,999 valid C.F.R.V.A. analyses
@@ -117,7 +117,7 @@ GGUF Q4_K_M export for llama.cpp
 
 ### Teacher model
 
-Gemma 4 31B was used through a Dify self-hosted pipeline to generate structured C.F.R.V.A. responses from a curated dataset. The teacher pipeline included RAG context from the Chatty 231051 framework and the author's communication-analysis material.
+gemma4:31b-cloud (Ollama) was used through a Dify self-hosted pipeline to generate structured C.F.R.V.A. responses from a curated dataset. The teacher pipeline included RAG context from the Chatty 231051 framework and the author's communication-analysis material.
 
 ### Student model
 
