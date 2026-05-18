@@ -50,12 +50,11 @@ An additional 56 real-world workplace scenarios commonly reported by autistic an
 
 Gemma 4 E4B IT was chosen for native multimodal support, edge deployability, and enough capacity to learn the 4-step C.F.R.V.A. output format. An initial E2B attempt was insufficient for consistent structured output.
 
-Fine-tuning used **Unsloth QLoRA 4-bit** on a local Linux/KachiOS machine with an RTX 5070 Ti and 16 GB VRAM. The per-device batch size was kept at 1 with 4 gradient accumulation steps, for an effective batch size of 4, to avoid VRAM spikes under the 16 GB ceiling.
+Fine-tuning used **Unsloth QLoRA 4-bit** on a local Linux/KachiOS machine with an RTX 5070 Ti and 16 GB VRAM. The per-device batch size was kept at 1 with 4 gradient accumulation steps, giving an effective batch size of 4 while staying under the 16 GB VRAM ceiling.
 
 | Hyperparameter | Value |
 |----------------|-------|
-| Adapter method | QLoRA 4-bit via Unsloth Studio |
-| LoRA r / alpha | Not published as definitive; final value not independently verified |
+| Fine-tuning method | Unsloth QLoRA 4-bit |
 | Load in 4-bit | True |
 | Max sequence length | 4,096 |
 | Per-device batch size | 1 |
