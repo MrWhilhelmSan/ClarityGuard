@@ -54,7 +54,8 @@ Fine-tuning used **Unsloth QLoRA 4-bit** on a local Linux/KachiOS machine with a
 
 | Hyperparameter | Value |
 |----------------|-------|
-| Fine-tuning method | Unsloth QLoRA 4-bit |
+| Adapter method | QLoRA 4-bit via Unsloth Studio |
+| LoRA r / alpha | Not published as definitive; final value not independently verified |
 | Load in 4-bit | True |
 | Max sequence length | 4,096 |
 | Per-device batch size | 1 |
