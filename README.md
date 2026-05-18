@@ -260,3 +260,18 @@ Carlos Lengemann
 Model weights: https://huggingface.co/CharlieBonito/clarity-guard-gemma4-7b
 
 Live demo: https://huggingface.co/spaces/CharlieBonito/ClarityGuardAgent
+
+## Kaggle Submission Notes
+
+The canonical Kaggle writeup is available in [`KAGGLE_WRITEUP_CORRECTED.md`](KAGGLE_WRITEUP_CORRECTED.md). It uses the current ClarityGuard v2 wording:
+
+- active files: `ClarityGuard-v2.gguf` and `mmproj-ClarityGuard-v2.gguf`
+- checkpoint 375 artifacts are legacy exports
+- training sequence length: 4096 tokens
+- inference context depends on runtime deployment
+- per-device batch size: 1
+- gradient accumulation: 4
+- effective batch size: 4
+- LoRA r/alpha is not published as definitive because the final exact value is not independently verified
+
+The Unsloth screenshots are summarized in [`Documentation/UNSLOTH_SCREENSHOT_FINDINGS.md`](Documentation/UNSLOTH_SCREENSHOT_FINDINGS.md). They should be used as reproducibility evidence, not as the complete original training log.

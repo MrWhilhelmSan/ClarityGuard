@@ -1,7 +1,11 @@
 # Configuración versionada para fine-tuning ClarityGuard (Unsloth + TRL SFT).
 # Nota: estos perfiles documentan el pipeline reproducible usado durante iteraciones
-# piloto. El modelo público final, ClarityGuard v2, fue entrenado/exportado con
-# Unsloth Studio sobre Gemma 4 E4B IT y publicado como checkpoint 750 en GGUF.
+# piloto. No uses este YAML como wording canonico de Kaggle para los hiperparametros finales.
+# El wording canonico esta en KAGGLE_WRITEUP_CORRECTED.md: ClarityGuard v2, checkpoint 750,
+# batch por dispositivo 1, gradient accumulation 4, effective batch 4. El r/alpha final no esta
+# publicado como definitivo porque no esta independientemente verificado.
+# El modelo publico final fue entrenado/exportado con Unsloth Studio sobre Gemma 4 E4B IT
+# y publicado como checkpoint 750 en GGUF.
 
 defaults:
   # QLoRA 4-bit + calidad en ~16 GB VRAM (RTX 5070 Ti)
