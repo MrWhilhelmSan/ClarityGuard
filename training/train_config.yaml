@@ -57,3 +57,40 @@ profiles:
     output_dir: ./outputs/clarityguard_pilot_1k_normalized
     num_train_epochs: 2
     max_steps: -1
+
+  # ──────────────────────────────────────────────
+  # ClarityGuard v2 — Perfil de produccion
+  # Gemma 4 E4B IT con QLoRA (Unsloth Studio)
+  # Checkpoint activo: 750
+  # Exportado a GGUF Q4_K_M
+  #
+  # NOTA: Los perfiles pilot_1k/* usan Gemma 2 2B para desarrollo rapido.
+  # Este perfil documenta los hiperparametros del modelo final publicado.
+  # El modelo fue entrenado via Unsloth Studio UI; este perfil es
+  # la configuracion documentada para reproducibilidad del pipeline.
+  # r/alpha no estan publicados como definitivos (no verificados independientemente).
+  # ──────────────────────────────────────────────
+  clarityguard_v2:
+    model_name: unsloth/gemma-4-e4b-it
+    data_file: ../manipulational_conversation_responses_train_messages.jsonl
+    output_dir: ./outputs/clarityguard_v2
+    num_train_epochs: 1
+    max_steps: 750
+    per_device_train_batch_size: 1
+    gradient_accumulation_steps: 4
+    learning_rate: 1.5e-4
+    lora_r: 48
+    lora_alpha: 96
+    lora_dropout: 0.0
+    warmup_ratio: 0.03
+    logging_steps: 10
+    save_steps: 375
+    seed: 3407
+    bf16: true
+    gradient_checkpointing: true
+    load_in_4bit: true
+    max_seq_length: 4096
+    system_prompt: null
+    strip_dataset_id_line: true
+    val_ratio: 0.02
+    merge_and_save_16bit: false

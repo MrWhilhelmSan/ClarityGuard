@@ -148,6 +148,38 @@ The repository includes the scripts and audit artifacts used to build and evalua
 
 Some large source JSONL files are intentionally not committed to keep the repository lightweight. The published model weights and available evaluation artifacts are hosted separately on Hugging Face and in `Documentation/`.
 
+## Reproducibility Notes
+
+This repository contains the complete pipeline used to build ClarityGuard, but some
+dependencies require setup that is specific to the author's environment:
+
+### Data Pipeline
+- The source dataset `manipulational_conversation.jsonl` is a Kaggle dataset not included
+  in this repo. The filter script (`data/filter_dataset.py`) documents how to produce
+  `curated_dataset_3000.jsonl` from it.
+- The Dify pipeline (`dify/dify_batch_chat.py`) assumes a self-hosted Dify instance with
+  Ollama running `gemma4:31b-cloud` as the teacher model. You will need to set
+  `DIFY_API_KEY` and `DIFY_BASE_URL` environment variables to use it.
+- Large intermediate JSONL files (training datasets) are not committed. The final dataset
+  structure is documented in `prepare_dataset.py`.
+
+### Training
+- The production model (ClarityGuard v2) was fine-tuned via **Unsloth Studio UI**,
+  not via the CLI script. The CLI script `train_clarityguard_sft.py` documents the
+  pipeline structure and the `clarityguard_v2` profile in `train_config.yaml` records
+  the hyperparameters used.
+- To reproduce the training yourself: configure a profile with `model_name: unsloth/gemma-4-e4b-it`
+  and provide a compatible JSONL dataset in `messages` format.
+
+### Export
+- The final GGUF export was done through the Unsloth Studio UI export function.
+  The script `export/exportar.py` provides a reference for HF Safetensors export
+  from a LoRA checkpoint, but is not the exact process used for the published GGUF.
+
+### Inference Scripts
+- `deploy/run-llama-server-q4.sh` expects `llama-server` in PATH or configured via the
+  `LLAMA` environment variable. Override defaults with environment variables.
+
 ## Deployment
 
 Download the model files from Hugging Face:

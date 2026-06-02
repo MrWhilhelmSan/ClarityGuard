@@ -9,8 +9,7 @@ y el marco "They sent me this — what's going on?".
 
 Entre una respuesta y la siguiente petición espera DELAY_SECONDS (por defecto 120).
 
-Ubicación canónica (WSL Linux):
-  /home/charlie/charlielinux/dify_batch/
+Requiere una instancia self-hosted de Dify con un agent chat App configurado.
 
 Uso:
   cd ~/charlielinux/dify_batch
@@ -44,8 +43,9 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-# Busca y reemplaza este valor por tu API key real de Dify (única ocurrencia de la clave en el repo).
-DIFY_API_KEY_PLACEHOLDER = "app-mhIbf5VY5Y8kqwAs0uUmDF1k"
+# Dify API key — configurar via variable de entorno DIFY_API_KEY o editar aqui.
+# El valor por defecto es un placeholder; NO uses esta key en produccion.
+DIFY_API_KEY_PLACEHOLDER = "<your-dify-api-key>"
 
 DIFY_BASE_URL_DEFAULT = "http://localhost/v1"
 
@@ -65,9 +65,11 @@ def resolve_default_jsonl(script_dir: Path) -> Path:
     matches = sorted(script_dir.glob("manipulational_conversation*.jsonl"))
     if matches:
         return matches[0]
+    # NOTA: Los paths siguientes son especificos del autor (entorno WSL + Windows).
+    # Si clonas este repo, asegurate de tener el JSONL en el directorio del script
+    # o usa --jsonl /ruta/a/tu/archivo.jsonl
     fallback = [
         home / "Downloads" / "manipulational_conversation.jsonl",
-        Path("/mnt/c/Users/carlo/Downloads/manipulational_conversation.jsonl"),
     ]
     for p in fallback:
         if p.is_file():

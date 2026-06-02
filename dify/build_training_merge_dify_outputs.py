@@ -86,16 +86,23 @@ def load_jsonl(path: Path) -> list[dict]:
 
 
 def to_unsloth_row(seq_id: int, rec: dict) -> dict:
-    """Incluye todos los campos del JSONL original + model_* + campos Unsloth."""
+    """Incluye todos los campos del JSONL original + model_* + campos Unsloth.
+
+    NOTA: El campo `text` usa el formato de chat de Gemma 4 (`<|turn|>`)
+    porque ClarityGuard v2 se entreno sobre Gemma 4 E4B IT.
+    El script de training (`train_clarityguard_sft.py`) usa `apply_chat_template`
+    sobre la lista `messages`, por lo que este campo es secundario y se incluye
+    para compatibilidad con herramientas que no soportan el formato `messages`.
+    """
     q = rec["model_query"]
     a = rec["model_response"]
     text = (
-        "<start_of_turn>user\n"
+        "<|turn|>user\n"
         f"{q}\n"
-        "<end_of_turn>\n"
-        "<start_of_turn>model\n"
+        "<turn|>\n"
+        "<|turn|>model\n"
         f"{a}\n"
-        "<end_of_turn>"
+        "<turn|>"
     )
     row = dict(rec)
     # `messages` pasa a ser el chat user/assistant; conservar el diálogo A/B del dataset.

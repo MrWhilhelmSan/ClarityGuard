@@ -3,7 +3,9 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-LLAMA="${LLAMA:-/home/charlie/Documents/llama.cpp/build/bin/llama-server}"
+# Default: busca llama-server en PATH o en el directorio actual.
+# Sobrescribe con: export LLAMA=/ruta/a/tu/llama-server
+LLAMA="${LLAMA:-$(command -v llama-server 2>/dev/null || echo './llama-server')}"
 MODEL="${MODEL:-$SCRIPT_DIR/ClarityGuard-v2.gguf}"
 MMPROJ="${MMPROJ:-$SCRIPT_DIR/mmproj-ClarityGuard-v2.gguf}"
 HOST="${HOST:-0.0.0.0}"
