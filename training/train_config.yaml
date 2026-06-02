@@ -1,4 +1,8 @@
 # Configuración versionada para fine-tuning ClarityGuard (Unsloth + TRL SFT).
+#
+# DATASET: El dataset de entrenamiento (2,999 registros) está publicado en:
+#   https://huggingface.co/datasets/CharlieBonito/clarity-guard-training-data
+#
 # Nota: estos perfiles documentan el pipeline reproducible usado durante iteraciones
 # piloto. No uses este YAML como wording canonico de Kaggle para los hiperparametros finales.
 # El wording canonico esta en KAGGLE_WRITEUP_CORRECTED.md: ClarityGuard v2, checkpoint 750,

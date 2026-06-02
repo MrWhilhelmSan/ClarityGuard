@@ -16,6 +16,7 @@ Built for the Gemma 4 Good Hackathon 2026.
 |---|---|
 | Live demo | https://huggingface.co/spaces/CharlieBonito/ClarityGuardAgent |
 | Model weights | https://huggingface.co/CharlieBonito/clarity-guard-gemma4-7b |
+| Training dataset | https://huggingface.co/datasets/CharlieBonito/clarity-guard-training-data |
 | Source repository | https://github.com/MrWhilhelmSan/ClarityGuard |
 
 ## Active Model
@@ -134,7 +135,10 @@ Gemma 4 E4B IT was fine-tuned with Unsloth Studio for the final ClarityGuard v2 
 
 ## Training and Evaluation Artifacts
 
-The repository includes the scripts and audit artifacts used to build and evaluate the system:
+The training dataset (2,999 C.F.R.V.A. analyses) is published on
+[HuggingFace Datasets](https://huggingface.co/datasets/CharlieBonito/clarity-guard-training-data).
+
+Additional scripts and audit artifacts used to build and evaluate the system:
 
 - `data/filter_dataset.py` - selects the 3,000-example training pool
 - `dify/dify_batch_chat.py` - sends examples through Dify/Gemma teacher generation
@@ -153,15 +157,29 @@ Some large source JSONL files are intentionally not committed to keep the reposi
 This repository contains the complete pipeline used to build ClarityGuard, but some
 dependencies require setup that is specific to the author's environment:
 
-### Data Pipeline
-- The source dataset `manipulational_conversation.jsonl` is a Kaggle dataset not included
-  in this repo. The filter script (`data/filter_dataset.py`) documents how to produce
-  `curated_dataset_3000.jsonl` from it.
+### Training Dataset
+
+The complete training dataset (2,999 C.F.R.V.A. analyses) is available on
+HuggingFace Datasets:
+
+```
+https://huggingface.co/datasets/CharlieBonito/clarity-guard-training-data
+```
+
+Load it directly:
+```python
+from datasets import load_dataset
+dataset = load_dataset("CharlieBonito/clarity-guard-training-data", split="train")
+```
+
+### Data Pipeline (for reference)
+- The source dataset `manipulational_conversation.jsonl` is a Kaggle dataset
+  (not included). The filter script (`data/filter_dataset.py`) documents how to
+  produce `curated_dataset_3000.jsonl` from it.
 - The Dify pipeline (`dify/dify_batch_chat.py`) assumes a self-hosted Dify instance with
   Ollama running `gemma4:31b-cloud` as the teacher model. You will need to set
   `DIFY_API_KEY` and `DIFY_BASE_URL` environment variables to use it.
-- Large intermediate JSONL files (training datasets) are not committed. The final dataset
-  structure is documented in `prepare_dataset.py`.
+- This pipeline is provided for reference; the final dataset is already published.
 
 ### Training
 - The production model (ClarityGuard v2) was fine-tuned via **Unsloth Studio UI**,
