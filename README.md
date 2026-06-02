@@ -172,6 +172,16 @@ from datasets import load_dataset
 dataset = load_dataset("CharlieBonito/clarity-guard-training-data", split="train")
 ```
 
+### Teacher RAG Sources
+
+The RAG context used during teacher generation (Chatty 231051 framework and
+organizational gaslighting book extract) is included in `docs/`:
+- `docs/rag_chatty_framework.md` — Chatty 231051 framework
+- `docs/rag_libro_manipulacion.md` — Book extract on manipulation awareness
+
+These are **proprietary** (all rights reserved by Carlos Lengemann) and are
+provided for reference and reproducibility of the teacher pipeline.
+
 ### Data Pipeline (for reference)
 - The source dataset `manipulational_conversation.jsonl` is a Kaggle dataset
   (not included). The filter script (`data/filter_dataset.py`) documents how to
@@ -279,7 +289,9 @@ ClarityGuard/
 │   ├── clarityguard_prompt_v4.4.txt
 │   └── clarityguard_prompt_v4.7.txt
 ├── docs/
-│   └── manifiesto_cfrva_v1.0.md
+│   ├── manifiesto_cfrva_v1.0.md
+│   ├── rag_chatty_framework.md        ← RAG source: Chatty 231051 framework
+│   └── rag_libro_manipulacion.md      ← RAG source: book extract (gaslighting org.)
 └── Documentation/
     ├── README_RESULTADOS_DATASET.txt
     ├── manipulational_conversation_responses_all.txt
