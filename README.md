@@ -210,35 +210,94 @@ provided for reference and reproducibility of the teacher pipeline.
 
 ## Deployment
 
-Download the model files from Hugging Face:
+### 1. Download Model Weights
+You can download the model weights and vision projector directly from Hugging Face using the HF CLI. 
+
+> [!NOTE]
+> If `huggingface-cli` is deprecated on your system, use `hf` instead.
 
 ```bash
+# Using standard HF CLI:
 huggingface-cli download CharlieBonito/clarity-guard-gemma4-7b \
+  ClarityGuard-v2.gguf \
+  mmproj-ClarityGuard-v2.gguf \
+  --local-dir deploy
+
+# OR using the modern 'hf' CLI if installed:
+hf download CharlieBonito/clarity-guard-gemma4-7b \
   ClarityGuard-v2.gguf \
   mmproj-ClarityGuard-v2.gguf \
   --local-dir deploy
 ```
 
-Then run llama.cpp:
+### 2. Install llama-server
+`llama-server` is the inference runner. You have two main options to acquire it:
+*   **Precompiled Binaries (Fastest):** Download the precompiled package matching your architecture (e.g. CPU, Vulkan, CUDA) from the official [ggml-org/llama.cpp Releases page](https://github.com/ggml-org/llama.cpp/releases), extract it, and place `llama-server` and its shared libraries (`.so` or `.dll` files) in a convenient location.
+*   **Build from Source (Custom/Optimized):** Follow the compilation guidelines in [llama.cpp Github repository](https://github.com/ggerganov/llama.cpp).
+
+### 3. Start the Server
+Run the deployment helper script (point `LLAMA` to the path of your compiled or downloaded `llama-server` binary if it is not in your system `PATH`):
 
 ```bash
 cd deploy
 chmod +x run-llama-server-q4.sh
-./run-llama-server-q4.sh
+LLAMA=/path/to/llama-server ./run-llama-server-q4.sh
 ```
 
-Default runtime:
-
+Default runtime settings:
 ```text
 model: ClarityGuard-v2.gguf
 mmproj: mmproj-ClarityGuard-v2.gguf
 host: 0.0.0.0
 port: 8081
 context: 12288
-gpu layers: 999
+gpu layers: 999 (loads all layers to GPU if CUDA is compiled; runs on CPU otherwise)
 ```
 
-Test the server:
+> [!TIP]
+> If deploying on Linux using systemd, you can find a template service file in `deploy/clarity-e4b-vision.service`. Make sure to customize the `User`, `WorkingDirectory`, and `ExecStart` paths inside the service file to match your environment.
+
+### 4. Test the Server
+To trigger the structured **C.F.R.V.A.** analysis response, your API requests must include:
+1. The system prompt content located in `prompts/clarityguard_prompt_v4.7.txt`.
+2. A high enough `max_tokens` value (e.g., `2048` or `4096`). Since Gemma 4 IT generates an in-depth reasoning trace inside `reasoning_content` before generating the final message content, setting `max_tokens` too low (like `512`) will truncate the output and return an empty assistant reply.
+
+Here is an example python snippet to query the API with the proper system prompt:
+
+```python
+import json
+import urllib.request
+
+# 1. Load C.F.R.V.A. System Prompt
+with open("prompts/clarityguard_prompt_v4.7.txt", "r", encoding="utf-8") as f:
+    system_prompt = f.read()
+
+# 2. Setup payload with reasoning headroom (max_tokens=2048)
+payload = {
+    "messages": [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": 'They said: "We need to fix this soon." What does that mean?'}
+    ],
+    "max_tokens": 2048,
+    "temperature": 0.7
+}
+
+# 3. Call local server
+req = urllib.request.Request(
+    "http://localhost:8081/v1/chat/completions",
+    data=json.dumps(payload).encode("utf-8"),
+    headers={"Content-Type": "application/json"},
+    method="POST"
+)
+
+with urllib.request.urlopen(req) as response:
+    result = json.loads(response.read().decode("utf-8"))
+    msg = result["choices"][0]["message"]
+    print("=== REASONING ===\n", msg.get("reasoning_content", ""))
+    print("=== RESPONSE ===\n", msg.get("content", ""))
+```
+
+Or using `curl` (passing the system prompt inline or using a temporary JSON file):
 
 ```bash
 curl http://localhost:8081/v1/chat/completions \
@@ -246,11 +305,15 @@ curl http://localhost:8081/v1/chat/completions \
   -d '{
     "messages": [
       {
+        "role": "system",
+        "content": "got it. [Insert full content of prompts/clarityguard_prompt_v4.7.txt here]"
+      },
+      {
         "role": "user",
         "content": "They said: \"We need to fix this soon.\" What does that mean?"
       }
     ],
-    "max_tokens": 512,
+    "max_tokens": 2048,
     "temperature": 0.7
   }'
 ```
